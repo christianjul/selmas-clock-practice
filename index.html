@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fff8e7">
+    <title>Hvad er klokken, hr. Selma?</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="app-header">
+        <div class="brand-mark" aria-hidden="true">S</div>
+        <div>
+          <p class="eyebrow">Selmas spilsamling</p>
+          <h1>Hvad er klokken, hr. Selma?</h1>
+        </div>
+        <button class="reset-button" id="reset-button" type="button">Start forfra</button>
+      </header>
+
+      <main>
+        <section class="progress-panel" aria-label="Dit fremskridt">
+          <div class="stat">
+            <span class="stat-icon" aria-hidden="true">★</span>
+            <div>
+              <span class="stat-label">Stjerner</span>
+              <strong id="star-count">0</strong>
+            </div>
+          </div>
+          <div class="stat">
+            <span class="stat-icon stat-icon-streak" aria-hidden="true">♥</span>
+            <div>
+              <span class="stat-label">I træk</span>
+              <strong id="streak-count">0</strong>
+            </div>
+          </div>
+          <div class="stat">
+            <span class="stat-icon stat-icon-level" aria-hidden="true">▲</span>
+            <div>
+              <span class="stat-label">Niveau</span>
+              <strong id="level-count">1</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="game-card" aria-labelledby="task-heading">
+          <div class="mascot" aria-hidden="true">
+            <span class="mascot-ear mascot-ear-left"></span>
+            <span class="mascot-ear mascot-ear-right"></span>
+            <span class="mascot-face">•ᴗ•</span>
+          </div>
+
+          <div class="challenge">
+            <p id="task-heading">Stil uret til</p>
+            <div class="target-time" id="target-time" aria-live="polite">08:00</div>
+          </div>
+
+          <div class="clock-layout">
+            <div class="clock-wrap">
+              <svg
+                id="clock"
+                class="clock"
+                viewBox="0 0 360 360"
+                role="img"
+                aria-label="Analogt ur. Træk viserne eller brug knapperne."
+              >
+                <circle class="clock-shadow" cx="180" cy="185" r="154"></circle>
+                <circle class="clock-face" cx="180" cy="180" r="154"></circle>
+                <g id="minute-marks" aria-hidden="true"></g>
+                <g id="hour-numbers" aria-hidden="true"></g>
+                <line class="hand-hit-area" id="hour-hit-area" x1="180" y1="180" x2="180" y2="99"></line>
+                <line class="hour-hand" id="hour-hand" x1="180" y1="180" x2="180" y2="99"></line>
+                <line class="hand-hit-area" id="minute-hit-area" x1="180" y1="180" x2="180" y2="63"></line>
+                <line class="minute-hand" id="minute-hand" x1="180" y1="180" x2="180" y2="63"></line>
+                <circle class="clock-pin" cx="180" cy="180" r="11"></circle>
+              </svg>
+            </div>
+
+            <div class="controls">
+              <div class="control-group">
+                <span>Timer</span>
+                <div class="control-row">
+                  <button type="button" data-adjust="hour-down" aria-label="En time tilbage">−</button>
+                  <strong id="selected-hour">12</strong>
+                  <button type="button" data-adjust="hour-up" aria-label="En time frem">+</button>
+                </div>
+              </div>
+              <div class="control-group">
+                <span>Minutter</span>
+                <div class="control-row">
+                  <button type="button" data-adjust="minute-down" aria-label="Minutter tilbage">−</button>
+                  <strong id="selected-minute">00</strong>
+                  <button type="button" data-adjust="minute-up" aria-label="Minutter frem">+</button>
+                </div>
+              </div>
+              <button class="check-button" id="check-button" type="button">Tjek uret</button>
+            </div>
+          </div>
+
+          <div class="feedback" id="feedback" aria-live="assertive" role="status"></div>
+          <button class="next-button" id="next-button" type="button" hidden>Næste klokkeslæt →</button>
+        </section>
+
+        <section class="encouragement" aria-label="Hjælp">
+          <span aria-hidden="true">☀</span>
+          <p id="encouragement-text">Træk viserne eller brug plus og minus.</p>
+        </section>
+      </main>
+
+      <footer>En del af Selmas spilsamling ✨</footer>
+    </div>
+
+    <dialog id="reset-dialog">
+      <form method="dialog">
+        <div class="dialog-icon" aria-hidden="true">↻</div>
+        <h2>Vil du starte forfra?</h2>
+        <p>Alle stjerner og dit niveau bliver nulstillet.</p>
+        <div class="dialog-actions">
+          <button value="cancel">Nej, behold dem</button>
+          <button class="confirm-reset" value="confirm">Ja, start forfra</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>

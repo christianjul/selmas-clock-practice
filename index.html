@@ -16,7 +16,9 @@
           <p class="eyebrow">Selmas spilsamling</p>
           <h1>Hvad er klokken, hr. Selma?</h1>
         </div>
-        <button class="reset-button" id="reset-button" type="button">Start forfra</button>
+        <button class="reset-button" id="reset-button" type="button">
+          <span aria-hidden="true">↻</span> Start forfra
+        </button>
       </header>
 
       <main>
@@ -52,13 +54,21 @@
           </div>
 
           <div class="mode-switch" role="group" aria-label="Vælg øvelse">
-            <button class="active" type="button" data-mode="set">Sæt viserne</button>
-            <button type="button" data-mode="read">Aflæs uret</button>
+            <button class="active" type="button" data-mode="set">
+              <span aria-hidden="true">☝</span> Sæt viserne
+            </button>
+            <button type="button" data-mode="read">
+              <span aria-hidden="true">◉</span> Aflæs uret
+            </button>
           </div>
 
           <div class="challenge">
-            <p id="task-heading">Stil uret til</p>
+            <p id="task-heading"><span id="task-icon" aria-hidden="true">☝</span> <span id="task-text">Stil uret til</span></p>
             <div class="target-time" id="target-time" aria-live="polite">08:00</div>
+            <div class="resolution-label">
+              <span id="resolution-icon" aria-hidden="true">●</span>
+              <span id="resolution-text">Hele timer</span>
+            </div>
           </div>
 
           <div class="clock-layout">
@@ -74,9 +84,9 @@
                 <circle class="clock-face" cx="180" cy="180" r="154"></circle>
                 <g id="minute-marks" aria-hidden="true"></g>
                 <g id="hour-numbers" aria-hidden="true"></g>
+                <line class="hand-hit-area" id="minute-hit-area" x1="180" y1="180" x2="180" y2="63"></line>
                 <line class="hand-hit-area" id="hour-hit-area" x1="180" y1="180" x2="180" y2="99"></line>
                 <line class="hour-hand" id="hour-hand" x1="180" y1="180" x2="180" y2="99"></line>
-                <line class="hand-hit-area" id="minute-hit-area" x1="180" y1="180" x2="180" y2="63"></line>
                 <line class="minute-hand" id="minute-hand" x1="180" y1="180" x2="180" y2="63"></line>
                 <circle class="clock-pin" cx="180" cy="180" r="11"></circle>
               </svg>
@@ -84,23 +94,25 @@
 
             <div class="controls">
               <div class="control-group selector-group">
-                <label for="hour-select">Timer</label>
+                <label for="hour-select"><span aria-hidden="true">🕐</span> Timer</label>
                 <select id="hour-select" aria-label="Vælg timer"></select>
               </div>
               <div class="control-group selector-group">
-                <label for="minute-select">Minutter</label>
+                <label for="minute-select"><span aria-hidden="true">◷</span> Minutter</label>
                 <select id="minute-select" aria-label="Vælg minutter"></select>
               </div>
-              <button class="check-button" id="check-button" type="button">Tjek uret</button>
+              <button class="check-button" id="check-button" type="button"><span aria-hidden="true">✓</span> Tjek uret</button>
             </div>
           </div>
 
           <div class="feedback" id="feedback" aria-live="assertive" role="status"></div>
-          <button class="next-button" id="next-button" type="button" hidden>Næste klokkeslæt →</button>
+          <button class="next-button" id="next-button" type="button" hidden>
+            Næste klokkeslæt <span aria-hidden="true">→</span>
+          </button>
           <div class="skip-controls" id="skip-controls">
-            <button type="button" data-difficulty="down">For svært</button>
-            <span id="skip-count">Sprunget over: 0</span>
-            <button type="button" data-difficulty="up">For nemt</button>
+            <button type="button" data-difficulty="down"><span aria-hidden="true">↓</span> For svært</button>
+            <span class="skip-summary"><span aria-hidden="true">↷</span> Sprunget over: <span id="skip-count">0</span></span>
+            <button type="button" data-difficulty="up"><span aria-hidden="true">↑</span> For nemt</button>
           </div>
         </section>
 
@@ -119,8 +131,8 @@
         <h2>Vil du starte forfra?</h2>
         <p>Alle stjerner og dit niveau bliver nulstillet.</p>
         <div class="dialog-actions">
-          <button value="cancel">Nej, behold dem</button>
-          <button class="confirm-reset" value="confirm">Ja, start forfra</button>
+          <button value="cancel"><span aria-hidden="true">←</span> Nej, behold dem</button>
+          <button class="confirm-reset" value="confirm"><span aria-hidden="true">↻</span> Ja, start forfra</button>
         </div>
       </form>
     </dialog>

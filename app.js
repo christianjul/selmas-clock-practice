@@ -37,8 +37,11 @@ const elements = {
   hourHitArea: document.querySelector("#hour-hit-area"),
   minuteHitArea: document.querySelector("#minute-hit-area"),
   clockLayout: document.querySelector(".clock-layout"),
-  taskHeading: document.querySelector("#task-heading"),
+  taskIcon: document.querySelector("#task-icon"),
+  taskText: document.querySelector("#task-text"),
   targetTime: document.querySelector("#target-time"),
+  resolutionIcon: document.querySelector("#resolution-icon"),
+  resolutionText: document.querySelector("#resolution-text"),
   hourSelect: document.querySelector("#hour-select"),
   minuteSelect: document.querySelector("#minute-select"),
   modeButtons: document.querySelectorAll("[data-mode]"),
@@ -162,7 +165,7 @@ function renderStats() {
   elements.starCount.textContent = progress.correctProblems;
   elements.streakCount.textContent = progress.streak;
   elements.levelCount.textContent = progress.level;
-  elements.skipCount.textContent = `Sprunget over: ${progress.skippedProblems}`;
+  elements.skipCount.textContent = progress.skippedProblems;
 }
 
 function renderSelectedTime() {
@@ -174,6 +177,8 @@ function renderSelectedTime() {
     const y = 180 - Math.cos(radians) * length;
     hand.setAttribute("x2", String(x));
     hand.setAttribute("y2", String(y));
+    hitArea.setAttribute("x1", "180");
+    hitArea.setAttribute("y1", "180");
     hitArea.setAttribute("x2", String(x));
     hitArea.setAttribute("y2", String(y));
   };
@@ -196,6 +201,22 @@ function getAllowedMinutes(settings) {
     minutes.push(minute);
   }
   return minutes;
+}
+
+function getResolutionDetails(settings) {
+  if (settings.minuteStep === 60) {
+    return { icon: "●", label: "Hele timer" };
+  }
+  if (settings.minuteStep === 30) {
+    return { icon: "◐", label: "Halve timer" };
+  }
+  if (settings.minuteStep === 15) {
+    return { icon: "◔", label: "Kvarter" };
+  }
+  if (settings.minuteStep === 5) {
+    return { icon: "5′", label: "5 minutter" };
+  }
+  return { icon: "◷", label: "Alle minutter" };
 }
 
 function populateSelectors(settings) {
@@ -281,9 +302,18 @@ function showChallenge() {
     : String(target.displayHour);
   elements.targetTime.textContent = `${targetHour}:${String(target.minute).padStart(2, "0")}`;
   elements.targetTime.hidden = progress.mode === "read";
-  elements.taskHeading.textContent = progress.mode === "read" ? "Hvad er klokken?" : "Stil uret til";
+  const resolution = getResolutionDetails(settings);
+  const minuteHandLocked = progress.mode === "set" && settings.minuteStep === 60;
+  elements.resolutionIcon.textContent = resolution.icon;
+  elements.resolutionText.textContent = resolution.label;
+  elements.taskIcon.textContent = progress.mode === "read" ? "◉" : "☝";
+  elements.taskText.textContent = progress.mode === "read" ? "Hvad er klokken?" : "Stil uret til";
   elements.clockLayout.classList.toggle("set-mode", progress.mode === "set");
   elements.clock.classList.toggle("fixed", progress.mode === "read");
+  elements.clock.classList.toggle(
+    "minute-locked",
+    progress.mode === "set" && settings.minuteStep === 60
+  );
   elements.modeButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.mode === progress.mode);
   });
@@ -461,7 +491,11 @@ function dragActiveHand(event) {
 }
 
 function startDragging(hand, event) {
-  if (problemFinished || progress.mode !== "set") {
+  if (
+    problemFinished ||
+    progress.mode !== "set" ||
+    (hand === "minute" && levelSettings[progress.level].minuteStep === 60)
+  ) {
     return;
   }
   event.preventDefault();

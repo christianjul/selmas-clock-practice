@@ -292,6 +292,24 @@ h1 {
   line-height: 1.15;
 }
 
+.resolution-label {
+  width: fit-content;
+  margin: 4px auto 0;
+  padding: 5px 11px;
+  color: var(--muted);
+  background: var(--purple-pale);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.resolution-label #resolution-icon {
+  display: inline-block;
+  min-width: 1.2em;
+  margin-right: 0.3em;
+  color: var(--purple-dark);
+}
+
 .clock-layout {
   display: grid;
   grid-template-columns: minmax(280px, 1.25fr) minmax(200px, 0.75fr);
@@ -385,6 +403,15 @@ h1 {
 .clock.fixed .hand-hit-area {
   pointer-events: none;
   cursor: default;
+}
+
+.clock.minute-locked .minute-hand {
+  stroke: #aeb4c8;
+  opacity: 0.7;
+}
+
+.clock.minute-locked #minute-hit-area {
+  pointer-events: none;
 }
 
 .clock-pin {
@@ -537,12 +564,28 @@ h1 {
   transform: scale(0.97);
 }
 
-.skip-controls span {
+.skip-controls > span {
   color: var(--muted);
   font-size: 11px;
   font-weight: 800;
   text-align: center;
   white-space: nowrap;
+}
+
+.reset-button span,
+.mode-switch button span,
+.challenge p > span:first-child,
+.control-group label span,
+.check-button span,
+.skip-controls button span,
+.dialog-actions button span {
+  display: inline-block;
+  margin-right: 0.35em;
+}
+
+.next-button span {
+  display: inline-block;
+  margin-left: 0.35em;
 }
 
 .encouragement {
@@ -727,7 +770,7 @@ dialog p {
     grid-template-columns: 1fr 1fr;
   }
 
-  .skip-controls span {
+  .skip-controls > span {
     grid-column: 1 / -1;
     grid-row: 2;
   }

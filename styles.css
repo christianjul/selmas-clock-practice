@@ -21,6 +21,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   min-width: 320px;
   min-height: 100vh;
@@ -238,6 +242,36 @@ h1 {
   font-weight: 800;
 }
 
+.mode-switch {
+  width: min(100%, 360px);
+  margin: 44px auto 18px;
+  padding: 5px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  background: var(--purple-pale);
+  border-radius: 16px;
+}
+
+.mode-switch button {
+  min-height: 44px;
+  padding: 8px 12px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.mode-switch button.active {
+  color: var(--purple-dark);
+  background: white;
+  box-shadow: 0 3px 10px rgba(61, 53, 112, 0.12);
+}
+
 .challenge {
   margin-bottom: 10px;
   text-align: center;
@@ -263,6 +297,19 @@ h1 {
   grid-template-columns: minmax(280px, 1.25fr) minmax(200px, 0.75fr);
   align-items: center;
   gap: clamp(20px, 5vw, 42px);
+}
+
+.clock-layout.set-mode {
+  grid-template-columns: 1fr;
+}
+
+.clock-layout.set-mode .controls {
+  width: min(100%, 340px);
+  margin: 0 auto;
+}
+
+.clock-layout.set-mode .selector-group {
+  display: none;
 }
 
 .clock-wrap {
@@ -335,6 +382,11 @@ h1 {
   cursor: grabbing;
 }
 
+.clock.fixed .hand-hit-area {
+  pointer-events: none;
+  cursor: default;
+}
+
 .clock-pin {
   fill: var(--ink);
   stroke: white;
@@ -355,7 +407,7 @@ h1 {
   text-align: center;
 }
 
-.control-group > span {
+.control-group label {
   display: block;
   margin-bottom: 7px;
   color: var(--muted);
@@ -365,33 +417,32 @@ h1 {
   text-transform: uppercase;
 }
 
-.control-row {
-  display: grid;
-  grid-template-columns: 52px 1fr 52px;
-  align-items: center;
-  gap: 8px;
-}
-
-.control-row button {
-  width: 52px;
-  height: 52px;
+.control-group select {
+  width: 100%;
+  min-height: 58px;
+  padding: 4px 38px 4px 16px;
   color: var(--purple-dark);
   background: var(--purple-pale);
-  border: 0;
+  border: 3px solid transparent;
   border-radius: 15px;
-  font-size: 29px;
+  outline: none;
+  font-family: "Baloo 2", cursive;
+  font-size: 27px;
   font-weight: 800;
   cursor: pointer;
   touch-action: manipulation;
+  text-align: center;
+  text-align-last: center;
 }
 
-.control-row button:active {
-  transform: scale(0.94);
+.control-group select:focus {
+  border-color: var(--purple);
 }
 
-.control-row strong {
-  font-family: "Baloo 2", cursive;
-  font-size: 29px;
+.control-group select:disabled {
+  color: #a7a7b5;
+  background: #e8e7ed;
+  opacity: 1;
 }
 
 .check-button,
@@ -414,8 +465,7 @@ h1 {
   box-shadow: 0 2px 0 var(--purple-dark);
 }
 
-.check-button:disabled,
-.control-row button:disabled {
+.check-button:disabled {
   color: #a7a7b5;
   background: #e8e7ed;
   box-shadow: none;
@@ -456,6 +506,43 @@ h1 {
   background: var(--green);
   box-shadow: 0 6px 0 #208361;
   z-index: 1;
+}
+
+.skip-controls {
+  position: relative;
+  margin-top: 18px;
+  padding-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  border-top: 2px solid #f1edf8;
+  z-index: 1;
+}
+
+.skip-controls button {
+  min-height: 44px;
+  padding: 8px 12px;
+  color: var(--purple-dark);
+  background: var(--purple-pale);
+  border: 0;
+  border-radius: 13px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.skip-controls button:active {
+  transform: scale(0.97);
+}
+
+.skip-controls span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .encouragement {
@@ -614,6 +701,11 @@ dialog p {
     gap: 11px;
   }
 
+  .mode-switch {
+    margin-top: 48px;
+    margin-bottom: 12px;
+  }
+
   .clock-wrap {
     width: min(100%, 310px);
   }
@@ -627,13 +719,17 @@ dialog p {
     grid-column: 1 / -1;
   }
 
-  .control-row {
-    grid-template-columns: 44px 1fr 44px;
+  .control-group select {
+    min-height: 54px;
   }
 
-  .control-row button {
-    width: 44px;
-    height: 48px;
+  .skip-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .skip-controls span {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 }
 

@@ -23,7 +23,9 @@ const createDefaultProgress = () => ({
   streak: 0,
   bestStreak: 0,
   questionsAtLevel: 0,
-  recentResults: []
+  skippedProblems: 0,
+  recentResults: [],
+  mode: "set"
 });
 
 const elements = {
@@ -34,10 +36,15 @@ const elements = {
   minuteHand: document.querySelector("#minute-hand"),
   hourHitArea: document.querySelector("#hour-hit-area"),
   minuteHitArea: document.querySelector("#minute-hit-area"),
+  clockLayout: document.querySelector(".clock-layout"),
+  taskHeading: document.querySelector("#task-heading"),
   targetTime: document.querySelector("#target-time"),
-  selectedHour: document.querySelector("#selected-hour"),
-  selectedMinute: document.querySelector("#selected-minute"),
-  adjustButtons: document.querySelectorAll("[data-adjust]"),
+  hourSelect: document.querySelector("#hour-select"),
+  minuteSelect: document.querySelector("#minute-select"),
+  modeButtons: document.querySelectorAll("[data-mode]"),
+  difficultyButtons: document.querySelectorAll("[data-difficulty]"),
+  skipControls: document.querySelector("#skip-controls"),
+  skipCount: document.querySelector("#skip-count"),
   checkButton: document.querySelector("#check-button"),
   nextButton: document.querySelector("#next-button"),
   feedback: document.querySelector("#feedback"),
@@ -53,6 +60,7 @@ const elements = {
 let progress = loadProgress();
 let target = { hour: 0, displayHour: 12, minute: 0 };
 let selected = { hour: 0, minute: 0 };
+let answer = { hour: 0, minute: 0 };
 let wrongAttempts = 0;
 let problemFinished = false;
 let activeHand = null;
@@ -76,6 +84,7 @@ function isValidProgress(value) {
     isNonNegativeInteger(value.bestStreak) &&
     value.streak <= value.bestStreak &&
     isNonNegativeInteger(value.questionsAtLevel) &&
+    (value.skippedProblems === undefined || isNonNegativeInteger(value.skippedProblems)) &&
     Array.isArray(value.recentResults) &&
     value.recentResults.length <= MAX_HISTORY &&
     value.recentResults.every((result) => typeof result === "boolean")
@@ -85,7 +94,14 @@ function isValidProgress(value) {
 function loadProgress() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return isValidProgress(saved) ? saved : createDefaultProgress();
+    if (isValidProgress(saved)) {
+      return {
+        ...saved,
+        skippedProblems: saved.skippedProblems ?? 0,
+        mode: saved.mode === "read" ? "read" : "set"
+      };
+    }
+    return createDefaultProgress();
   } catch {
     return createDefaultProgress();
   }
@@ -146,18 +162,28 @@ function renderStats() {
   elements.starCount.textContent = progress.correctProblems;
   elements.streakCount.textContent = progress.streak;
   elements.levelCount.textContent = progress.level;
+  elements.skipCount.textContent = `Sprunget over: ${progress.skippedProblems}`;
 }
 
 function renderSelectedTime() {
   const hourAngle = selected.hour * 30 + selected.minute * 0.5;
   const minuteAngle = selected.minute * 6;
-  const displayHour = selected.hour === 0 ? 12 : selected.hour;
-  elements.hourHand.setAttribute("transform", `rotate(${hourAngle} 180 180)`);
-  elements.hourHitArea.setAttribute("transform", `rotate(${hourAngle} 180 180)`);
-  elements.minuteHand.setAttribute("transform", `rotate(${minuteAngle} 180 180)`);
-  elements.minuteHitArea.setAttribute("transform", `rotate(${minuteAngle} 180 180)`);
-  elements.selectedHour.textContent = String(displayHour);
-  elements.selectedMinute.textContent = String(selected.minute).padStart(2, "0");
+  const setHandPosition = (hand, hitArea, angle, length) => {
+    const radians = (angle * Math.PI) / 180;
+    const x = 180 + Math.sin(radians) * length;
+    const y = 180 - Math.cos(radians) * length;
+    hand.setAttribute("x2", String(x));
+    hand.setAttribute("y2", String(y));
+    hitArea.setAttribute("x2", String(x));
+    hitArea.setAttribute("y2", String(y));
+  };
+
+  setHandPosition(elements.hourHand, elements.hourHitArea, hourAngle, 81);
+  setHandPosition(elements.minuteHand, elements.minuteHitArea, minuteAngle, 117);
+  if (progress.mode === "read") {
+    elements.hourSelect.value = String(answer.hour);
+    elements.minuteSelect.value = String(answer.minute);
+  }
 }
 
 function getAllowedMinutes(settings) {
@@ -170,6 +196,24 @@ function getAllowedMinutes(settings) {
     minutes.push(minute);
   }
   return minutes;
+}
+
+function populateSelectors(settings) {
+  elements.hourSelect.replaceChildren();
+  for (let displayHour = 1; displayHour <= 12; displayHour += 1) {
+    const option = document.createElement("option");
+    option.value = String(displayHour % 12);
+    option.textContent = String(displayHour);
+    elements.hourSelect.append(option);
+  }
+
+  elements.minuteSelect.replaceChildren();
+  getAllowedMinutes(settings).forEach((minute) => {
+    const option = document.createElement("option");
+    option.value = String(minute);
+    option.textContent = String(minute).padStart(2, "0");
+    elements.minuteSelect.append(option);
+  });
 }
 
 function generateTarget() {
@@ -214,9 +258,8 @@ function generateStartingTime() {
 }
 
 function setControlsDisabled(disabled) {
-  elements.adjustButtons.forEach((button) => {
-    button.disabled = disabled;
-  });
+  elements.hourSelect.disabled = disabled;
+  elements.minuteSelect.disabled = disabled;
   elements.checkButton.disabled = disabled;
   elements.clock.classList.toggle("disabled", disabled);
 }
@@ -224,28 +267,45 @@ function setControlsDisabled(disabled) {
 function showChallenge() {
   const settings = levelSettings[progress.level];
   target = generateTarget();
-  selected = generateStartingTime();
+  populateSelectors(settings);
+  if (progress.mode === "read") {
+    selected = { hour: target.hour, minute: target.minute };
+    answer = generateStartingTime();
+  } else {
+    selected = generateStartingTime();
+  }
   wrongAttempts = 0;
   problemFinished = false;
   const targetHour = settings.useTwentyFourHours
     ? String(target.displayHour).padStart(2, "0")
     : String(target.displayHour);
   elements.targetTime.textContent = `${targetHour}:${String(target.minute).padStart(2, "0")}`;
+  elements.targetTime.hidden = progress.mode === "read";
+  elements.taskHeading.textContent = progress.mode === "read" ? "Hvad er klokken?" : "Stil uret til";
+  elements.clockLayout.classList.toggle("set-mode", progress.mode === "set");
+  elements.clock.classList.toggle("fixed", progress.mode === "read");
+  elements.modeButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.mode === progress.mode);
+  });
   elements.feedback.textContent = "";
   elements.feedback.className = "feedback";
   elements.nextButton.hidden = true;
+  elements.skipControls.hidden = false;
   elements.gameCard.classList.remove("celebrate");
-  elements.encouragement.textContent =
-    settings.minuteStep === 60
-      ? "På niveau 1 øver vi hele timer."
-      : `Minutknapperne flytter ${settings.minuteStep} ${settings.minuteStep === 1 ? "minut" : "minutter"}.`;
+  if (progress.mode === "read") {
+    elements.encouragement.textContent =
+      settings.minuteStep === 60
+        ? "Aflæs timeviseren og vælg den rigtige time."
+        : "Se på viserne og vælg klokkeslættet.";
+  } else {
+    elements.encouragement.textContent =
+      settings.minuteStep === 60
+        ? "Træk timeviseren hen på den rigtige time."
+        : "Træk direkte i time- og minutviseren.";
+  }
   setControlsDisabled(false);
-  if (settings.minuteStep === 60) {
-    elements.adjustButtons.forEach((button) => {
-      if (button.dataset.adjust.startsWith("minute")) {
-        button.disabled = true;
-      }
-    });
+  if (settings.minuteStep === 60 && progress.mode === "read") {
+    elements.minuteSelect.disabled = true;
   }
   renderSelectedTime();
 }
@@ -317,11 +377,13 @@ function setFinishedState() {
   problemFinished = true;
   setControlsDisabled(true);
   elements.nextButton.hidden = false;
+  elements.skipControls.hidden = true;
   elements.nextButton.focus();
 }
 
 function isCorrectTime() {
-  return selected.hour === target.hour && selected.minute === target.minute;
+  const response = progress.mode === "read" ? answer : selected;
+  return response.hour === target.hour && response.minute === target.minute;
 }
 
 function checkTime() {
@@ -350,11 +412,19 @@ function checkTime() {
   wrongAttempts += 1;
   if (wrongAttempts >= 3) {
     const levelChange = finishProblem(false);
-    selected = { hour: target.hour, minute: target.minute };
+    if (progress.mode === "read") {
+      answer = { hour: target.hour, minute: target.minute };
+    } else {
+      selected = { hour: target.hour, minute: target.minute };
+    }
     renderSelectedTime();
     const extraMessage =
       levelChange === "down" ? ` Vi øver lidt på niveau ${progress.level}.` : "";
-    elements.feedback.textContent = `Sådan skal viserne stå.${extraMessage}`;
+    const correctTime = `${target.hour === 0 ? 12 : target.hour}:${String(target.minute).padStart(2, "0")}`;
+    elements.feedback.textContent =
+      progress.mode === "read"
+        ? `Det rigtige svar er ${correctTime}.${extraMessage}`
+        : `Sådan skal viserne stå.${extraMessage}`;
     elements.feedback.className = "feedback incorrect";
     elements.encouragement.textContent = "Det er helt okay — næste klokkeslæt er en ny chance.";
     setFinishedState();
@@ -364,25 +434,6 @@ function checkTime() {
   elements.feedback.textContent =
     wrongAttempts === 1 ? "Ikke helt endnu. Prøv én gang til." : "Du er tæt på — prøv igen.";
   elements.feedback.className = "feedback incorrect";
-}
-
-function adjustHour(amount) {
-  if (problemFinished) {
-    return;
-  }
-  selected.hour = (selected.hour + amount + 12) % 12;
-  renderSelectedTime();
-}
-
-function adjustMinute(direction) {
-  if (problemFinished) {
-    return;
-  }
-  const settings = levelSettings[progress.level];
-  const step = settings.minuteStep === 60 ? 60 : settings.minuteStep;
-  const total = selected.hour * 60 + selected.minute + direction * step;
-  selected = timeFromTotalMinutes(total);
-  renderSelectedTime();
 }
 
 function getClockAngle(event) {
@@ -410,7 +461,7 @@ function dragActiveHand(event) {
 }
 
 function startDragging(hand, event) {
-  if (problemFinished) {
+  if (problemFinished || progress.mode !== "set") {
     return;
   }
   event.preventDefault();
@@ -434,19 +485,42 @@ function resetProgress() {
   elements.encouragement.textContent = "En frisk start — du kan godt!";
 }
 
-elements.adjustButtons.forEach((button) => {
+function skipChallenge(direction) {
+  progress.skippedProblems += 1;
+  progress.level = Math.max(
+    MIN_LEVEL,
+    Math.min(MAX_LEVEL, progress.level + (direction === "up" ? 1 : -1))
+  );
+  progress.questionsAtLevel = 0;
+  progress.recentResults = [];
+  saveProgress();
+  renderStats();
+  showChallenge();
+  elements.encouragement.textContent =
+    direction === "up"
+      ? `Så prøver vi niveau ${progress.level}.`
+      : `Vi gør det lidt lettere på niveau ${progress.level}.`;
+}
+
+elements.hourSelect.addEventListener("change", () => {
+  answer.hour = Number(elements.hourSelect.value);
+  renderSelectedTime();
+});
+elements.minuteSelect.addEventListener("change", () => {
+  answer.minute = Number(elements.minuteSelect.value);
+  renderSelectedTime();
+});
+elements.modeButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    const action = button.dataset.adjust;
-    if (action === "hour-down") {
-      adjustHour(-1);
-    } else if (action === "hour-up") {
-      adjustHour(1);
-    } else if (action === "minute-down") {
-      adjustMinute(-1);
-    } else if (action === "minute-up") {
-      adjustMinute(1);
+    if (button.dataset.mode !== progress.mode) {
+      progress.mode = button.dataset.mode;
+      saveProgress();
+      showChallenge();
     }
   });
+});
+elements.difficultyButtons.forEach((button) => {
+  button.addEventListener("click", () => skipChallenge(button.dataset.difficulty));
 });
 
 elements.hourHitArea.addEventListener("pointerdown", (event) => startDragging("hour", event));

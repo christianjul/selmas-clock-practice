@@ -51,6 +51,11 @@
             <span class="mascot-face">•ᴗ•</span>
           </div>
 
+          <div class="mode-switch" role="group" aria-label="Vælg øvelse">
+            <button class="active" type="button" data-mode="set">Sæt viserne</button>
+            <button type="button" data-mode="read">Aflæs uret</button>
+          </div>
+
           <div class="challenge">
             <p id="task-heading">Stil uret til</p>
             <div class="target-time" id="target-time" aria-live="polite">08:00</div>
@@ -78,21 +83,13 @@
             </div>
 
             <div class="controls">
-              <div class="control-group">
-                <span>Timer</span>
-                <div class="control-row">
-                  <button type="button" data-adjust="hour-down" aria-label="En time tilbage">−</button>
-                  <strong id="selected-hour">12</strong>
-                  <button type="button" data-adjust="hour-up" aria-label="En time frem">+</button>
-                </div>
+              <div class="control-group selector-group">
+                <label for="hour-select">Timer</label>
+                <select id="hour-select" aria-label="Vælg timer"></select>
               </div>
-              <div class="control-group">
-                <span>Minutter</span>
-                <div class="control-row">
-                  <button type="button" data-adjust="minute-down" aria-label="Minutter tilbage">−</button>
-                  <strong id="selected-minute">00</strong>
-                  <button type="button" data-adjust="minute-up" aria-label="Minutter frem">+</button>
-                </div>
+              <div class="control-group selector-group">
+                <label for="minute-select">Minutter</label>
+                <select id="minute-select" aria-label="Vælg minutter"></select>
               </div>
               <button class="check-button" id="check-button" type="button">Tjek uret</button>
             </div>
@@ -100,6 +97,11 @@
 
           <div class="feedback" id="feedback" aria-live="assertive" role="status"></div>
           <button class="next-button" id="next-button" type="button" hidden>Næste klokkeslæt →</button>
+          <div class="skip-controls" id="skip-controls">
+            <button type="button" data-difficulty="down">For svært</button>
+            <span id="skip-count">Sprunget over: 0</span>
+            <button type="button" data-difficulty="up">For nemt</button>
+          </div>
         </section>
 
         <section class="encouragement" aria-label="Hjælp">
